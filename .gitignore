@@ -1,0 +1,20 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+.pytest_cache/
+
+# Env / secrets
+.env
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+dist/
+build/

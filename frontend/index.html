@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quick Register</title>
+  <link rel="manifest" href="/frontend/manifest.webmanifest" />
+  <meta name="theme-color" content="#0b5fff" />
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:16px;background:#f8f9fb}
+    .card{max-width:520px;margin:0 auto;background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+    h1{font-size:20px;margin:0 0 12px}
+    label{display:block;font-size:14px;margin:12px 0 6px}
+    input,select,button{width:100%;font-size:16px;padding:12px;border:1px solid #dde1e7;border-radius:10px}
+    button.primary{background:#0b5fff;color:white;border:none;margin-top:14px}
+    a.small{display:inline-block;margin-top:8px;font-size:14px;color:#0b5fff;text-decoration:none}
+    .row{display:flex;gap:8px}
+    .row > *{flex:1}
+    .note{font-size:12px;color:#566}
+    .success{background:#e7f6ea;color:#0a6531;border:1px solid #b7e2c1;padding:10px;border-radius:8px;margin-top:10px;display:none}
+    .error{background:#fdecea;color:#a12622;border:1px solid #f5c2c0;padding:10px;border-radius:8px;margin-top:10px;display:none}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Quick Register</h1>
+    <p class="note">Use “Quick Register with Auto‑Fill” to let the browser suggest your name/phone/email and auto‑detect District & Mandal via location permission.</p>
+    <form id="regForm" autocomplete="on">
+      <label for="name">Name</label>
+      <input id="name" name="name" required autocomplete="name" inputmode="text" />
+      <div class="row">
+        <div>
+          <label for="phone">Phone</label>
+          <input id="phone" name="phone" required autocomplete="tel" inputmode="numeric" pattern="\\d{10}" placeholder="10 digits" />
+        </div>
+        <div>
+          <label for="email">Email (optional)</label>
+          <input id="email" name="email" autocomplete="email" inputmode="email" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="district">District</label>
+          <input id="district" name="district" required list="districtList" />
+        </div>
+        <div>
+          <label for="mandal">Mandal</label>
+          <input id="mandal" name="mandal" required list="mandalList" />
+        </div>
+      </div>
+      <datalist id="districtList"></datalist>
+      <datalist id="mandalList"></datalist>
+      <button type="button" id="quickBtn" class="primary">Quick Register with Auto‑Fill</button>
+      <a href="#" id="manualLink" class="small">Enter manually</a>
+      <button type="submit" class="">Submit</button>
+      <div id="success" class="success">Saved locally. Will sync when online.</div>
+      <div id="error" class="error"></div>
+    </form>
+  </div>
+  <script type="module" src="/frontend/main.js"></script>
+</body>
+</html>
