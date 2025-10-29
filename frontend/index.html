@@ -4,33 +4,182 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Quick Register</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="/frontend/manifest.webmanifest" />
   <meta name="theme-color" content="#0b5fff" />
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:16px;background:#f8f9fb}
-    .card{max-width:520px;margin:0 auto;background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
-    h1{font-size:20px;margin:0 0 12px}
-    label{display:block;font-size:14px;margin:12px 0 6px}
-    input,select,button{width:100%;font-size:16px;padding:12px;border:1px solid #dde1e7;border-radius:10px}
-    button.primary{background:#0b5fff;color:white;border:none;margin-top:14px}
-    a.small{display:inline-block;margin-top:8px;font-size:14px;color:#0b5fff;text-decoration:none}
-    .row{display:flex;gap:8px}
-    .row > *{flex:1}
-    .note{font-size:12px;color:#566}
-    .success{background:#e7f6ea;color:#0a6531;border:1px solid #b7e2c1;padding:10px;border-radius:8px;margin-top:10px;display:none}
-    .error{background:#fdecea;color:#a12622;border:1px solid #f5c2c0;padding:10px;border-radius:8px;margin-top:10px;display:none}
+    /* Reset & Base */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+      margin: 0; padding: 16px;
+      background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
+      color: #1e293b;
+      line-height: 1.6;
+      word-wrap: break-word; overflow-wrap: anywhere;
+    }
+
+    /* Card */
+    .card {
+      max-width: 520px; margin: 20px auto;
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+      animation: fadeInUp 0.4s ease-out;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    h1 {
+      font-size: 24px; font-weight: 700;
+      margin: 0 0 8px;
+      background: linear-gradient(135deg, #0b5fff 0%, #0084ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .note {
+      font-size: 13px; color: #64748b;
+      margin-bottom: 20px; line-height: 1.5;
+    }
+
+    /* Labels */
+    label {
+      display: block; font-size: 14px; font-weight: 600;
+      margin: 16px 0 6px; color: #334155;
+    }
+
+    /* Inputs & Dropdowns */
+    input, select {
+      width: 100%; max-width: 100%;
+      font-size: 16px; padding: 12px 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      background: #fff;
+      color: #1e293b;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #0b5fff;
+      box-shadow: 0 0 0 3px rgba(11, 95, 255, 0.1);
+    }
+    input::placeholder { color: #94a3b8; }
+
+    /* Show validation errors only after user interaction */
+    input.touched:invalid, select.touched:invalid {
+      border-color: #f43f5e;
+    }
+    input.touched:valid, select.touched:valid {
+      border-color: #10b981;
+    }
+
+    /* Row layout for Phone/Email */
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .row > * { flex: 1 1 0; min-width: 140px; }
+
+    /* Buttons */
+    button {
+      width: 100%; cursor: pointer;
+      font-size: 16px; font-weight: 600;
+      padding: 14px 20px; border: none; border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+    button:disabled {
+      opacity: 0.5; cursor: not-allowed;
+    }
+    button.primary {
+      background: linear-gradient(135deg, #0b5fff 0%, #0084ff 100%);
+      color: #fff;
+      font-size: 18px; padding: 16px 24px;
+      margin-top: 20px;
+      box-shadow: 0 4px 12px rgba(11, 95, 255, 0.3);
+    }
+    button.primary:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(11, 95, 255, 0.4);
+    }
+    button.primary:not(:disabled):active {
+      transform: translateY(0);
+    }
+    button.secondary {
+      background: #f1f5f9;
+      color: #0b5fff;
+      border: 2px solid #e2e8f0;
+      font-size: 14px; padding: 10px 16px;
+      margin-top: 10px;
+    }
+    button.secondary:hover {
+      background: #e8f0fe;
+      border-color: #0b5fff;
+    }
+
+    /* Consent checkbox */
+    label[style] {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin-top: 16px; font-weight: 400; font-size: 14px; color: #475569;
+    }
+    input[type="checkbox"] {
+      width: auto; margin-top: 2px;
+      accent-color: #0b5fff;
+      cursor: pointer;
+    }
+
+    /* Messages */
+    .success, .error {
+      padding: 12px 16px; border-radius: 10px; margin-top: 12px;
+      font-size: 14px; font-weight: 500;
+      display: none; animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .success {
+      background: #d1fae5; color: #065f46;
+      border: 1px solid #6ee7b7;
+    }
+    .error {
+      background: #fee2e2; color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+    .toast {
+      font-size: 13px; color: #0b5fff;
+      margin-top: 6px; font-weight: 500;
+    }
+
+    /* Accessibility & Focus Indicators */
+    *:focus-visible {
+      outline: 2px solid #0b5fff;
+      outline-offset: 2px;
+    }
+
+    /* Mobile polish */
+    @media (max-width: 480px) {
+      .card { padding: 20px; margin: 12px; }
+      h1 { font-size: 22px; }
+      button.primary { font-size: 16px; padding: 14px 20px; }
+    }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Quick Register</h1>
-    <p class="note">Use “Quick Register with Auto‑Fill” to let the browser suggest your name/phone/email and auto‑detect District & Mandal via location permission.</p>
-    <form id="regForm" autocomplete="on">
-      <label for="name">Name</label>
+    <p class="note">Tap "Quick Register with Auto‑Fill" to let the browser suggest your details and auto‑detect PC/AC/Ward‑GP by location.</p>
+    <form id="regForm" autocomplete="on" novalidate>
+      <label for="name">Name *</label>
       <input id="name" name="name" required autocomplete="name" inputmode="text" />
+
       <div class="row">
         <div>
-          <label for="phone">Phone</label>
+          <label for="phone">Phone *</label>
           <input id="phone" name="phone" required autocomplete="tel" inputmode="numeric" pattern="\\d{10}" placeholder="10 digits" />
         </div>
         <div>
@@ -38,21 +187,29 @@
           <input id="email" name="email" autocomplete="email" inputmode="email" />
         </div>
       </div>
-      <div class="row">
-        <div>
-          <label for="district">District</label>
-          <input id="district" name="district" required list="districtList" />
-        </div>
-        <div>
-          <label for="mandal">Mandal</label>
-          <input id="mandal" name="mandal" required list="mandalList" />
-        </div>
-      </div>
-      <datalist id="districtList"></datalist>
-      <datalist id="mandalList"></datalist>
-      <button type="button" id="quickBtn" class="primary">Quick Register with Auto‑Fill</button>
-      <a href="#" id="manualLink" class="small">Enter manually</a>
-      <button type="submit" class="">Submit</button>
+
+      <label for="pc">Parliamentary Constituency (PC) *</label>
+      <input id="pc" name="pc" list="pcList" required />
+      <datalist id="pcList"></datalist>
+
+      <label for="ac">Assembly Constituency (AC) *</label>
+      <input id="ac" name="ac" list="acList" required />
+      <datalist id="acList"></datalist>
+
+      <label for="ward">Ward / Gram Panchayat *</label>
+      <input id="ward" name="ward" list="wardList" required />
+      <datalist id="wardList"></datalist>
+      <div id="toast" class="toast"></div>
+
+      <button type="button" id="quickBtn" class="secondary">Quick Register with Auto‑Fill</button>
+
+      <label style="display:flex;align-items:flex-start;gap:8px;margin-top:14px">
+        <input type="checkbox" id="consent" required style="width:auto;margin-top:4px" />
+        <span>I consent to receive updates about AAP community service campaigns.</span>
+      </label>
+
+      <button id="submitBtn" type="submit" class="primary" disabled>Submit</button>
+
       <div id="success" class="success">Saved locally. Will sync when online.</div>
       <div id="error" class="error"></div>
     </form>

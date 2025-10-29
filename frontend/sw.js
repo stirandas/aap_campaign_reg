@@ -1,6 +1,5 @@
 /* global self, caches, fetch */
-const API_BASE = 'http://127.0.0.1:8000';
-const CACHE = 'acr-shell-v1';
+const CACHE = 'acr-shell-v2';
 const SHELL = [
   '/frontend/index.html',
   '/frontend/main.js',
@@ -24,7 +23,7 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   const { request } = e;
-  if (request.method === 'GET' && request.destination !== 'document' && request.url.includes('/api/') === false) {
+  if (request.method === 'GET' && request.destination !== 'document' && !request.url.includes('/api/')) {
     e.respondWith(
       caches.match(request).then((cached) => cached || fetch(request).catch(() => cached))
     );
@@ -38,28 +37,21 @@ async function flushQueue() {
   const idsSynced = [];
   for (const item of items) {
     try {
-      const res = await fetch('/api/http://127.0.0.1:8000/api/register', {
+      const res = await fetch('http://127.0.0.1:8000/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(item)
       });
       if (res.ok) idsSynced.push(item.id);
-    } catch (_) {
-      // network error: stop early to let BS retry later
-      break;
-    }
+    } catch (_) { break; }
   }
   if (idsSynced.length) await markSynced(idsSynced);
 }
 
 self.addEventListener('sync', (e) => {
-  if (e.tag === 'sync-registrations') {
-    e.waitUntil(flushQueue());
-  }
+  if (e.tag === 'sync-registrations') e.waitUntil(flushQueue());
 });
 
 self.addEventListener('message', (e) => {
-  if (e.data === 'flush') {
-    e.waitUntil(flushQueue());
-  }
+  if (e.data === 'flush') e.waitUntil(flushQueue());
 });
