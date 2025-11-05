@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "aapreg",
+    "prod": "aapreg"
+  },
+  "targets": {},
+  "etags": {}
+}
