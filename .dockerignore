@@ -1,0 +1,77 @@
+# Alembic cache (if present)
+alembic/versions/__pycache__/
+
+# VCS and editor configs
+.git
+.gitignore
+.gitattributes
+.vscode
+.idea
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+.Python
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+
+# Virtual/env files
+.venv
+.env
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.env.local
+
+# Build artifacts and logs
+build/
+dist/
+downloads/
+wheels/
+share/python-wheels/
+pip-wheel-metadata/
+*.log
+coverage.xml
+htmlcov/
+.coverage
+.coverage.*
+
+# Test and tooling outputs
+.tox/
+.nox/
+.cache/
+
+# Project docs and static site not needed in backend image
+docs/
+frontend/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+README.md
+LICENSE
+
+# Firebase files (not needed in Docker)
+.firebase/
+.firebaserc
+firebase.json
+firebase-debug.log*
+
+# Build files
+public/
+
+# Node modules (if using npm)
+node_modules/
+
+# VS Code
+.vscode/
+.DS_Store

@@ -18,3 +18,17 @@ Thumbs.db
 # Misc
 dist/
 build/
+
+# Firebase
+.firebase/
+.firebaserc
+
+# Firebase logs
+firebase-debug.log*
+
+# Build outputs
+public/
+dist/
+
+# Local env
+.env.local
