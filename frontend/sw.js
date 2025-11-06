@@ -1,11 +1,19 @@
 /* global self, caches, fetch */
+
 const CACHE = 'acr-shell-v2';
+
 const SHELL = [
-  '/frontend/index.html',
-  '/frontend/main.js',
-  '/frontend/db.js',
-  '/frontend/manifest.webmanifest'
+  './',
+  './index.html',
+  './main.js',
+  './db.js',
+  './manifest.webmanifest'
 ];
+
+// Detect environment dynamically
+const API_BASE_URL = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1'
+  ? 'http://127.0.0.1:8000'
+  : self.location.origin;  // This will be https://aapreg.web.app from Firebase
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
@@ -31,13 +39,13 @@ self.addEventListener('fetch', (e) => {
 });
 
 async function flushQueue() {
-  const { listUnsynced, markSynced } = await import('/frontend/db.js');
+  const { listUnsynced, markSynced } = await import('./db.js');
   const items = await listUnsynced(20);
   if (!items.length) return;
   const idsSynced = [];
   for (const item of items) {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/register', {
+      const res = await fetch(`${API_BASE_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(item)

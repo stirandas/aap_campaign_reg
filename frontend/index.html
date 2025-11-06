@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="manifest" href="/frontend/manifest.webmanifest" />
+  <link rel="manifest" href="./manifest.webmanifest" />
   <meta name="theme-color" content="#0b5fff" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0a3d99" media="(prefers-color-scheme: dark)">
   <style>
@@ -181,11 +181,13 @@
       <div class="row">
         <div>
           <label for="phone">Phone *</label>
-          <input id="phone" name="phone" required autocomplete="tel" inputmode="numeric" pattern="\\d{10}" placeholder="10 digits" />
+          <input id="phone" name="phone" required autocomplete="tel" inputmode="numeric" type="tel" pattern="[0-9]{10}"
+            placeholder="9876543210" />
         </div>
         <div>
           <label for="email">Email (optional)</label>
-          <input id="email" name="email" autocomplete="email" inputmode="email" />
+          <input id="email" name="email" type="email" required pattern="[A-Za-z0-9._\-]+@[A-Za-z0-9._\-]+\.[A-Za-z]{2,}"
+            placeholder="user@example.com" autocomplete="email" inputmode="email" />
         </div>
       </div>
 
@@ -215,6 +217,6 @@
       <div id="error" class="error"></div>
     </form>
   </div>
-  <script type="module" src="/frontend/main.js"></script>
+  <script type="module" src="./main.js"></script>
 </body>
 </html>
