@@ -1,9 +1,23 @@
 {
-  "name": "Campaign Quick Register",
+  "name": "AAP Campaign Quick Register",
   "short_name": "Register",
-  "start_url": "/frontend/index.html?utm_source=pwa",
+  "start_url": "/",
+  "orientation": "portrait",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0b5fff",
-  "icons": []
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/images/aap-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/aap-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
 }

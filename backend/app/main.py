@@ -15,7 +15,7 @@ app = FastAPI(title="Campaign Register API", version="0.2")
 # Dev CORS: restrict to your frontend origins only
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080", "http://127.0.0.1:8080"],
+    allow_origins=["http://localhost:8080", "http://127.0.0.1:8080", "https://aapreg.web.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
