@@ -52,6 +52,7 @@ htmlcov/
 # Project docs and static site not needed in backend image
 docs/
 frontend/
+images/
 
 # OS cruft
 .DS_Store

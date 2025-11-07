@@ -199,6 +199,13 @@ form.addEventListener('submit', async (e) => {
   const name = el('name').value.trim();
   const phone10 = normalizePhone(el('phone').value);
   const email = el('email').value.trim() || null;
+  // Validate email if provided
+    if (email && !el('email').checkValidity()) {
+      showError('Please enter a valid email address.');
+      el('email').classList.add('touched');
+      el('email').focus();
+      return;
+    }
   const pc_id = idFromList(pcList, pcInput.value);
   const ac_id = idFromList(acList, acInput.value);
   const ward_gp_id = idFromList(wardList, wardInput.value);
