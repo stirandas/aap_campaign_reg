@@ -11,12 +11,10 @@ FROM base AS builder
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential curl && rm -rf /var/lib/apt/lists/*
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# Copy Poetry files from backend/
 COPY backend/pyproject.toml backend/poetry.lock /app/
 RUN poetry config virtualenvs.create false
 RUN poetry install --only main --no-interaction --no-ansi
 
-# Copy Python package from backend/app -> /app/app
 COPY backend/app /app/app
 
 FROM python:3.13-slim AS runtime
@@ -35,4 +33,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD python -c "import urllib.request,sys,os; urllib.request.urlopen(f'http://127.0.0.1:{os.getenv(\"PORT\",\"8000\")}/healthz'); sys.exit(0)"
 
-CMD exec uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT} --workers ${UVICORN_WORKERS}
+CMD exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --workers ${UVICORN_WORKERS}

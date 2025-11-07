@@ -1,9 +1,9 @@
 import { queueRegistration, savePref, getPref } from './db.js';
 
-// Detect environment dynamically
+// Local and GCP backend URLs
 const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://127.0.0.1:8000'
-  : window.location.origin;
+  : 'https://aap-campaign-reg-backend-444299072309.asia-south1.run.app';
 
 const el = (id) => document.getElementById(id);
 const form = el('regForm');
