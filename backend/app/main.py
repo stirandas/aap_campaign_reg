@@ -1,137 +1,138 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Dict, List
-from .schemas import (
-    RegisterIn, RegisterOut,
-    PCOut, ACOut, WardGPOut, WardGPPage, LookupOut
-)
+from sqlalchemy.ext.asyncio import AsyncSession
+from . import schemas, crud
+from .database import get_db
 import re
-import time
 
+app = FastAPI(title="Campaign Register API", version="1.0")
 
-app = FastAPI(title="Campaign Register API", version="0.2")
-
-
-# CORS: restrict to your frontend origins only
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080", "http://127.0.0.1:8080", "https://aapreg.web.app", "https://aap-campaign-reg-backend-444299072309.asia-south1.run.app"],
+    allow_origins=[
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "https://aapreg.web.app",
+        "https://aap-campaign-reg.firebaseapp.com"  # Alt Firebase URL
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-# --------- In-memory data (stub) ----------
-PCS: List[PCOut] = [
-    PCOut(id="pc-1", code="PC01", name="Sample PC One"),
-    PCOut(id="pc-2", code="PC02", name="Sample PC Two"),
-]
-ACS: List[ACOut] = [
-    ACOut(id="ac-1", code="AC01", name="Sample AC A", pc_id="pc-1"),
-    ACOut(id="ac-2", code="AC02", name="Sample AC B", pc_id="pc-1"),
-    ACOut(id="ac-3", code="AC03", name="Sample AC C", pc_id="pc-2"),
-]
-WARD_GPS: List[WardGPOut] = [
-    WardGPOut(id="w-1", code="W001", name="Ward Alpha", ac_id="ac-1"),
-    WardGPOut(id="w-2", code="W002", name="Ward Beta", ac_id="ac-1"),
-    WardGPOut(id="w-3", code="W003", name="Ward Gamma", ac_id="ac-2"),
-    WardGPOut(id="w-4", code="W004", name="Ward Delta", ac_id="ac-3"),
-]
-
-
-# Temporary registrations store with dedupe by phone
-STORE: Dict[str, RegisterIn] = {}
-
-
-# --------- Helpers ----------
-def normalize_phone_to_e164(phone: str) -> str:
-    digits = re.sub(r"\D", "", phone or "")
-    if len(digits) == 10:
-        return f"+91{digits}"
-    if digits.startswith("91") and len(digits) == 12:
-        return f"+{digits}"
-    if digits.startswith("0") and len(digits) == 11:
-        return f"+91{digits[1:]}"
-    if digits.startswith("+") and len(digits) >= 11:
-        return digits
-    raise HTTPException(status_code=422, detail="Invalid Indian phone; provide 10 digits")
-
-
-def find_pc(pc_id: str) -> PCOut | None:
-    return next((x for x in PCS if x.id == pc_id), None)
-
-
-def find_ac(ac_id: str) -> ACOut | None:
-    return next((x for x in ACS if x.id == ac_id), None)
-
-
-def find_ward(ward_id: str) -> WardGPOut | None:
-    return next((x for x in WARD_GPS if x.id == ward_id), None)
-
-
-# --------- Health & root ----------
-@app.get("/healthz")
-def health():
-    return {"ok": True, "ts": int(time.time())}
-
-
 @app.get("/")
 def root():
-    return {"message": "OK. Use /docs for API and serve frontend on http://localhost:8080/frontend/index.html"}
+    return {"message": "Campaign Registration API v1.0"}
 
+@app.get("/healthz")
+def health():
+    return {"ok": True}
 
-# --------- Public list endpoints ----------
-@app.get("/list/pc", response_model=List[PCOut])
-def list_pc():
-    return PCS
+# ========== LIST ENDPOINTS ==========
 
+@app.get("/list/state", response_model=list[schemas.StateOut])
+async def list_states(db: AsyncSession = Depends(get_db)):
+    """Get all states"""
+    states = await crud.get_all_states(db)
+    return [
+        schemas.StateOut(state_id=s.state_id, state_name=s.state_name)
+        for s in states
+    ]
 
-@app.get("/list/ac", response_model=List[ACOut])
-def list_ac(pc_id: str = Query(..., description="Parent PC id")):
-    return [x for x in ACS if x.pc_id == pc_id]
+@app.get("/list/district", response_model=list[schemas.DistrictOut])
+async def list_districts(
+    state_id: int = Query(..., description="State ID"),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get districts for a state"""
+    districts = await crud.get_districts_by_state(db, state_id)
+    
+    if not districts:
+        raise HTTPException(status_code=404, detail="No districts found for this state")
+    
+    return [
+        schemas.DistrictOut(
+            district_id=d.district_id,
+            state_id=d.state_id,
+            district_name=d.district_name
+        )
+        for d in districts
+    ]
 
+@app.get("/list/mandal", response_model=list[schemas.MandalOut])
+async def list_mandals(
+    district_id: int = Query(..., description="District ID"),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get mandals for a district"""
+    mandals = await crud.get_mandals_by_district(db, district_id)
+    
+    if not mandals:
+        raise HTTPException(status_code=404, detail="No mandals found for this district")
+    
+    return [
+        schemas.MandalOut(
+            mandal_id=m.mandal_id,
+            district_id=m.district_id,
+            mandal_name=m.mandal_name
+        )
+        for m in mandals
+    ]
 
-@app.get("/list/ward_gp", response_model=WardGPPage)
-def list_ward_gp(ac_id: str, page: int = 1, page_size: int = 20, q: str | None = None):
-    items = [x for x in WARD_GPS if x.ac_id == ac_id]
-    if q:
-        ql = q.lower()
-        items = [x for x in items if ql in x.name.lower() or ql in x.code.lower()]
-    total = len(items)
-    start = (page - 1) * page_size
-    return WardGPPage(items=items[start:start+page_size], page=page, page_size=page_size, total=total)
+# ========== REGISTRATION ENDPOINT ==========
 
-
-# --------- Reverse lookup (stub) ----------
-@app.get("/lookup", response_model=LookupOut)
-def lookup(lat: float, lng: float):
-    # Stub: pick a deterministic ward for now; integrate real resolver later
-    ward = WARD_GPS[0]
-    ac = find_ac(ward.ac_id)
-    pc = find_pc(ac.pc_id) if ac else None
-    return LookupOut(
-        ward_gp_id=ward.id, ward_gp_name=ward.name,
-        ac_id=ac.id, ac_name=ac.name,
-        pc_id=pc.id, pc_name=pc.name,
-        source="stub"
+@app.post("/register", response_model=schemas.RegisterOut)
+async def register(
+    payload: schemas.RegisterIn,
+    db: AsyncSession = Depends(get_db)
+):
+    """Register a new user with auto-create village"""
+    
+    # Normalize phone to E.164 format
+    phone_normalized = normalize_phone(payload.phone)
+    
+    # Get or create village
+    village = await crud.get_or_create_village(
+        db,
+        mandal_id=payload.mandal_id,
+        village_name=payload.village_name.strip().title()
+    )
+    
+    # Create registration
+    registration_data = {
+        "name": payload.name,
+        "phone_e164": phone_normalized,
+        "email": payload.email,
+        "state_id": payload.state_id,
+        "district_id": payload.district_id,
+        "mandal_id": payload.mandal_id,
+        "village_id": village.village_id,
+        "utm_source": payload.utm_source,
+        "utm_medium": payload.utm_medium,
+        "utm_campaign": payload.utm_campaign,
+    }
+    
+    registration = await crud.create_registration(db, registration_data)
+    
+    if not registration:
+        raise HTTPException(status_code=409, detail="Phone number already registered")
+    
+    return schemas.RegisterOut(
+        registration_id=registration.registration_id,
+        village_id=village.village_id,
+        status="success"
     )
 
+# ========== HELPER FUNCTIONS ==========
 
-# --------- Registration ----------
-@app.post("/api/register", response_model=RegisterOut, status_code=201)
-def register(reg: RegisterIn):
-    phone_e164 = normalize_phone_to_e164(reg.phone)
-    if not find_pc(reg.pc_id) or not find_ac(reg.ac_id) or not find_ward(reg.ward_gp_id):
-        raise HTTPException(status_code=422, detail="Invalid governance ids")
-    # Dedupe by phone: update existing or create new
-    existing_id = None
-    for rid, r in STORE.items():
-        if normalize_phone_to_e164(r.phone) == phone_e164:
-            existing_id = rid
-            break
-    if existing_id:
-        STORE[existing_id] = reg
-        return {"id": existing_id, "status": "updated"}
-    STORE[reg.id] = reg
-    return {"id": reg.id, "status": "created"}
+def normalize_phone(phone: str) -> str:
+    """Normalize phone to E.164 format (+91XXXXXXXXXX)"""
+    cleaned = re.sub(r'\D', '', phone)
+    
+    if len(cleaned) == 10:
+        return f"+91{cleaned}"
+    elif len(cleaned) == 12 and cleaned.startswith("91"):
+        return f"+{cleaned}"
+    else:
+        raise HTTPException(status_code=400, detail="Invalid phone number format")

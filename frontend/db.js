@@ -1,84 +1,114 @@
-export const DB_NAME = 'app_campaign_reg';
-const STORE = 'registrations';
-const PREFS = 'prefs';
-const VERSION = 2;
+// IndexedDB setup for offline capability
+const DB_NAME = 'CampaignRegDB';
+const DB_VERSION = 5;
+const STORE_NAME = 'registrations';
+const PREF_STORE = 'preferences';
 
-export function openDB() {
+let db;
+
+// Open/create database
+function openDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, VERSION);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(STORE)) {
-        const os = db.createObjectStore(STORE, { keyPath: 'id' });
-        os.createIndex('by_synced', 'synced', { unique: false });
-        os.createIndex('by_createdAt', 'createdAt', { unique: false });
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    
+    req.onupgradeneeded = (e) => {
+      db = e.target.result;
+      
+      // Create registrations store
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+        store.createIndex('phone', 'phone', { unique: false });
+        store.createIndex('state_id', 'state_id', { unique: false });
+        store.createIndex('district_id', 'district_id', { unique: false });
+        store.createIndex('mandal_id', 'mandal_id', { unique: false });
+        store.createIndex('village_name', 'village_name', { unique: false });
+        store.createIndex('created_at', 'created_at', { unique: false });
       }
-      if (!db.objectStoreNames.contains(PREFS)) {
-        db.createObjectStore(PREFS, { keyPath: 'key' });
+      
+      // Create preferences store
+      if (!db.objectStoreNames.contains(PREF_STORE)) {
+        db.createObjectStore(PREF_STORE, { keyPath: 'key' });
       }
     };
+    
+    req.onsuccess = (e) => {
+      db = e.target.result;
+      resolve(db);
+    };
+    
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+// Queue registration for offline sync
+export async function queueRegistration(payload) {
+  if (!db) await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction([STORE_NAME], 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.add({ ...payload, created_at: Date.now() });
+    
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// Get all queued registrations
+export async function getQueuedRegistrations() {
+  if (!db) await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction([STORE_NAME], 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.getAll();
+    
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 }
 
-export async function queueRegistration(reg) {
-  const db = await openDB();
+// Delete registration after successful sync
+export async function deleteRegistration(id) {
+  if (!db) await openDB();
+  
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).put(reg);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-export async function listUnsynced(limit = 20) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const out = [];
-    const tx = db.transaction(STORE, 'readonly');
-    const idx = tx.objectStore(STORE).index('by_synced');
-    const req = idx.openCursor(IDBKeyRange.only(false));
-    req.onsuccess = (e) => {
-      const cursor = e.target.result;
-      if (cursor && out.length < limit) { out.push(cursor.value); cursor.continue(); }
-      else { resolve(out); }
-    };
+    const tx = db.transaction([STORE_NAME], 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.delete(id);
+    
+    req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);
   });
 }
 
-export async function markSynced(ids) {
-  if (!ids.length) return;
-  const db = await openDB();
-  await new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readwrite');
-    const os = tx.objectStore(STORE);
-    ids.forEach((id) => {
-      const g = os.get(id);
-      g.onsuccess = () => { const v = g.result; if (v) { v.synced = true; os.put(v); } };
-    });
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
+// Save preference
 export async function savePref(key, value) {
-  const db = await openDB();
-  const tx = db.transaction(PREFS, 'readwrite');
-  tx.objectStore(PREFS).put({ key, value });
+  if (!db) await openDB();
+  
   return new Promise((resolve, reject) => {
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-export async function getPref(key) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(PREFS, 'readonly');
-    const req = tx.objectStore(PREFS).get(key);
-    req.onsuccess = () => resolve(req.result?.value ?? null);
+    const tx = db.transaction([PREF_STORE], 'readwrite');
+    const store = tx.objectStore(PREF_STORE);
+    const req = store.put({ key, value });
+    
+    req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);
   });
 }
+
+// Get preference
+export async function getPref(key) {
+  if (!db) await openDB();
+  
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction([PREF_STORE], 'readonly');
+    const store = tx.objectStore(PREF_STORE);
+    const req = store.get(key);
+    
+    req.onsuccess = () => resolve(req.result?.value);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// Initialize DB on load
+openDB();

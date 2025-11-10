@@ -1,58 +1,40 @@
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional, List
 
-
+# INPUT SCHEMAS
 class RegisterIn(BaseModel):
-    id: str
     name: str = Field(min_length=2, max_length=120)
-    phone: str  # send 10 digits client-side; normalize to E.164 server-side
+    phone: str  # 10 digits client-side; normalize to E.164 server-side
     email: Optional[EmailStr] = None
-    pc_id: str
-    ac_id: str
-    ward_gp_id: str
+    state_id: int
+    district_id: int
+    mandal_id: int
+    village_name: str = Field(min_length=2, max_length=100)
     utm_source: Optional[str] = None
     utm_medium: Optional[str] = None
     utm_campaign: Optional[str] = None
-    createdAt: int
 
-
+# OUTPUT SCHEMAS
 class RegisterOut(BaseModel):
-    id: str
+    registration_id: int
+    village_id: int
     status: str
 
+class StateOut(BaseModel):
+    state_id: int
+    state_name: str
 
-class PCOut(BaseModel):
-    id: str
-    code: str
-    name: str
+class DistrictOut(BaseModel):
+    district_id: int
+    state_id: int
+    district_name: str
 
+class MandalOut(BaseModel):
+    mandal_id: int
+    district_id: int
+    mandal_name: str
 
-class ACOut(BaseModel):
-    id: str
-    code: str
-    name: str
-    pc_id: str
-
-
-class WardGPOut(BaseModel):
-    id: str
-    code: str
-    name: str
-    ac_id: str
-
-
-class WardGPPage(BaseModel):
-    items: List[WardGPOut]
-    page: int
-    page_size: int
-    total: int
-
-
-class LookupOut(BaseModel):
-    ward_gp_id: str
-    ward_gp_name: str
-    ac_id: str
-    ac_name: str
-    pc_id: str
-    pc_name: str
-    source: str
+class VillageOut(BaseModel):
+    village_id: int
+    mandal_id: int
+    village_name: str

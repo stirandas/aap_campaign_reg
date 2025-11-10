@@ -1,223 +1,255 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AAP Quick Registration</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <meta name="theme-color" content="#0b5fff" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0a3d99" media="(prefers-color-scheme: dark)">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AAP Campaign Registration</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="favicon.ico">
   <style>
-    /* Reset & Base */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-      margin: 0; padding: 16px;
-      background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
-      color: #1e293b;
-      line-height: 1.6;
-      word-wrap: break-word; overflow-wrap: anywhere;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
-
-    /* Card */
-    .card {
-      max-width: 520px; margin: 20px auto;
-      background: #fff;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
-      animation: fadeInUp 0.4s ease-out;
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
     }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Header */
     h1 {
-      font-size: 24px; font-weight: 700;
-      margin: 0 0 8px;
-      background: linear-gradient(135deg, #0b5fff 0%, #0084ff 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 10px;
+      text-align: center;
     }
-    .note {
-      font-size: 13px; color: #64748b;
-      margin-bottom: 20px; line-height: 1.5;
+    .subtitle {
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 14px;
     }
-
-    /* Labels */
     label {
-      display: block; font-size: 14px; font-weight: 600;
-      margin: 16px 0 6px; color: #334155;
+      display: block;
+      margin: 15px 0 5px;
+      font-weight: 600;
+      color: #444;
+      font-size: 14px;
     }
-
-    /* Inputs & Dropdowns */
+    label .required {
+      color: #e74c3c;
+      font-weight: bold;
+    }
     input, select {
-      width: 100%; max-width: 100%;
-      font-size: 16px; padding: 12px 14px;
-      border: 2px solid #e2e8f0;
-      border-radius: 10px;
-      background: #fff;
-      color: #1e293b;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 15px;
+      transition: all 0.3s;
     }
     input:focus, select:focus {
       outline: none;
-      border-color: #0b5fff;
-      box-shadow: 0 0 0 3px rgba(11, 95, 255, 0.1);
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
-    input::placeholder { color: #94a3b8; }
-
-    /* Show validation errors only after user interaction */
-    input.touched:invalid, select.touched:invalid {
-      border-color: #f43f5e;
+    input:disabled, select:disabled {
+      background: #f5f5f5;
+      cursor: not-allowed;
+      opacity: 0.6;
     }
-    input.touched:valid, select.touched:valid {
-      border-color: #10b981;
+    input.valid, select.valid {
+      border-color: #28a745;
     }
-
-    /* Row layout for Phone/Email */
-    .row { display: flex; gap: 12px; flex-wrap: wrap; }
-    .row > * { flex: 1 1 0; min-width: 140px; }
-
-    /* Buttons */
-    button {
-      width: 100%; cursor: pointer;
-      font-size: 16px; font-weight: 600;
-      padding: 14px 20px; border: none; border-radius: 12px;
-      transition: all 0.2s ease;
-    }
-    button:disabled {
-      opacity: 0.5; cursor: not-allowed;
-    }
-    button.primary {
-      background: linear-gradient(135deg, #0b5fff 0%, #0084ff 100%);
-      color: #fff;
-      font-size: 18px; padding: 16px 24px;
-      margin-top: 20px;
-      box-shadow: 0 4px 12px rgba(11, 95, 255, 0.3);
-    }
-    button.primary:not(:disabled):hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(11, 95, 255, 0.4);
-    }
-    button.primary:not(:disabled):active {
-      transform: translateY(0);
-    }
-    button.secondary {
-      background: #f1f5f9;
-      color: #0b5fff;
-      border: 2px solid #e2e8f0;
-      font-size: 14px; padding: 10px 16px;
-      margin-top: 10px;
-    }
-    button.secondary:hover {
-      background: #e8f0fe;
-      border-color: #0b5fff;
-    }
-
-    /* Consent checkbox */
-    label[style] {
-      display: flex; align-items: flex-start; gap: 10px;
-      margin-top: 16px; font-weight: 400; font-size: 14px; color: #475569;
-    }
-    input[type="checkbox"] {
-      width: auto; margin-top: 2px;
-      accent-color: #0b5fff;
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      font-weight: normal;
       cursor: pointer;
     }
-
-    /* Messages */
-    .success, .error {
-      padding: 12px 16px; border-radius: 10px; margin-top: 12px;
-      font-size: 14px; font-weight: 500;
-      display: none; animation: slideIn 0.3s ease;
+    .checkbox-label input[type="checkbox"] {
+      width: auto;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.1s;
+      margin-top: 10px;
+    }
+    button:hover:not(:disabled) {
+      background: #5568d3;
+      transform: translateY(-1px);
+    }
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    #success, #error {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: 500;
+      animation: slideIn 0.3s ease;
     }
     @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-8px); }
+      from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .success {
-      background: #d1fae5; color: #065f46;
-      border: 1px solid #6ee7b7;
+    #success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
     }
-    .error {
-      background: #fee2e2; color: #991b1b;
-      border: 1px solid #fca5a5;
+    #error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
     }
-    .toast {
-      font-size: 13px; color: #0b5fff;
-      margin-top: 6px; font-weight: 500;
+    .helper-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 3px;
+      font-style: italic;
     }
-
-    /* Accessibility & Focus Indicators */
-    *:focus-visible {
-      outline: 2px solid #0b5fff;
-      outline-offset: 2px;
-    }
-
-    /* Mobile polish */
-    @media (max-width: 480px) {
-      .card { padding: 20px; margin: 12px; }
-      h1 { font-size: 22px; }
-      button.primary { font-size: 16px; padding: 14px 20px; }
+    .field-group {
+      margin-bottom: 5px;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Join AP Transformation through AAP </h1>
-    <p class="note">Press "Quick Register with Auto‑Fill" by allowing location access OR proceed for manual entry</p>
-    <form id="regForm" autocomplete="on" novalidate>
-      <label for="name">Name *</label>
-      <input id="name" name="name" required autocomplete="name" inputmode="text" placeholder="FirstName LastName" />
+  <div class="container">
+    <h1>
+      <img src="images/aap-icon-192x192.png" alt="AAP"
+        style="width: 36px; height: 36px; vertical-align: middle; margin-right: 8px;">
+      AAP Campaign Registration
+    </h1>
+    <p class="subtitle">Andhra Pradesh State Campaign</p>
 
-      <div class="row">
-        <div>
-          <label for="phone">Phone *</label>
-          <input id="phone" name="phone" required autocomplete="tel" inputmode="numeric" type="tel" pattern="[0-9]{10}"
-            placeholder="9876543210" />
-        </div>
-        <div>
-          <label for="email">Email (optional)</label>
-          <input id="email" name="email" type="email" pattern="[A-Za-z0-9._\-]+@[A-Za-z0-9._\-]+\.[A-Za-z]{2,}"
-            placeholder="user@example.com" autocomplete="email" inputmode="email" />
-        </div>
+    <form id="regForm">
+      <!-- Name -->
+      <div class="field-group">
+        <label for="name">Full Name <span class="required">*</span></label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name" 
+          required 
+          minlength="2" 
+          maxlength="120" 
+          placeholder="Enter your full name"
+        />
       </div>
 
-      <label for="pc">Parliamentary Constituency (PC) *</label>
-      <input id="pc" name="pc" list="pcList" required />
-      <datalist id="pcList"></datalist>
+      <!-- Phone -->
+      <div class="field-group">
+        <label for="phone">Phone Number (10 digits) <span class="required">*</span></label>
+        <input 
+          type="tel" 
+          id="phone" 
+          name="phone" 
+          required 
+          pattern="[0-9]{10}" 
+          maxlength="10" 
+          placeholder="9876543210"
+        />
+      </div>
 
-      <label for="ac">Assembly Constituency (AC) *</label>
-      <input id="ac" name="ac" list="acList" required />
-      <datalist id="acList"></datalist>
+      <!-- Email (Optional) -->
+      <div class="field-group">
+        <label for="email">Email (optional)</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          placeholder="your.email@example.com"
+        />
+      </div>
 
-      <label for="ward">Ward / Gram Panchayat *</label>
-      <input id="ward" name="ward" list="wardList" required />
-      <datalist id="wardList"></datalist>
-      <div id="toast" class="toast"></div>
+      <!-- State Dropdown -->
+      <div class="field-group">
+        <label for="state">State <span class="required">*</span></label>
+        <select id="state" name="state" required>
+          <option value="">-- Select State --</option>
+        </select>
+      </div>
 
-      <button type="button" id="quickBtn" class="secondary">Quick Register with Auto‑Fill</button>
+      <!-- District Dropdown -->
+      <div class="field-group">
+        <label for="district">District <span class="required">*</span></label>
+        <select id="district" name="district" required disabled>
+          <option value="">-- Select State First --</option>
+        </select>
+      </div>
 
-      <label style="display:flex;align-items:flex-start;gap:8px;margin-top:14px">
-        <input type="checkbox" id="consent" required style="width:auto;margin-top:4px" />
-        <span>The information I provided is accurate and I consent to receive updates about AAP campaigns.</span>
+      <!-- Mandal Dropdown -->
+      <div class="field-group">
+        <label for="mandal">Mandal <span class="required">*</span></label>
+        <select id="mandal" name="mandal" required disabled>
+          <option value="">-- Select District First --</option>
+        </select>
+      </div>
+
+      <!-- Village Text Input -->
+      <div class="field-group">
+        <label for="village">Village / Town <span class="required">*</span></label>
+        <input 
+          type="text" 
+          id="village" 
+          name="village" 
+          required 
+          minlength="2" 
+          maxlength="100" 
+          placeholder="Enter your village or town name"
+          disabled
+        />
+        <p class="helper-text">Type your village/town name (e.g., "Chilakaluripet")</p>
+      </div>
+
+      <!-- Consent Checkboxes -->
+      <label class="checkbox-label">
+        <input type="checkbox" id="consentAccuracy" name="consentAccuracy" required />
+        I certify that this information is mine and accurate <span class="required">*</span>
       </label>
 
-      <button id="submitBtn" type="submit" class="primary" disabled>Submit</button>
+      <label class="checkbox-label">
+        <input type="checkbox" id="consentShare" name="consentShare" required />
+        I consent to share my details with Aam Aadmi Party <span class="required">*</span>
+      </label>
 
-      <div id="success" class="success">Saved locally. Will sync when online.</div>
-      <div id="error" class="error"></div>
+      <!-- Submit Button -->
+      <button type="submit" id="submitBtn" disabled>Register</button>
     </form>
+
+    <!-- Success Message -->
+    <div id="success" style="display:none;"></div>
+
+    <!-- Error Message -->
+    <div id="error" style="display:none;"></div>
   </div>
-  <script type="module" src="./main.js"></script>
+
+  <script type="module" src="main.js?v=2"></script>
 </body>
 </html>
