@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AAP Campaign Registration</title>
+  <meta name="description" content="Register for AAP Andhra Pradesh campaign">
+  <title>AAP Registration</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="favicon.ico">
+  <meta name="theme-color" content="#667eea">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -66,9 +68,27 @@
       cursor: not-allowed;
       opacity: 0.6;
     }
+    
+    /* Valid state - green border */
     input.valid, select.valid {
-      border-color: #28a745;
+      border: 2px solid #28a745;
+      background-color: #f8fff9;
     }
+    input.valid:focus, select.valid:focus {
+      border-color: #28a745;
+      box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.15);
+    }
+    
+    /* Invalid state - red border */
+    input.invalid, select.invalid {
+      border: 2px solid #dc3545;
+      background-color: #fff5f5;
+    }
+    input.invalid:focus, select.invalid:focus {
+      border-color: #dc3545;
+      box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+    }
+    
     .checkbox-label {
       display: flex;
       align-items: center;
@@ -137,119 +157,111 @@
     .field-group {
       margin-bottom: 5px;
     }
-  </style>
+      /* Phone and Email on same row */
+    .form-row {
+      display: flex;
+      gap: 15px;
+    }
+
+    .form-row .field-group {
+      flex: 1;
+    }
+
+    /* Stack vertically on mobile */
+    @media (max-width: 360px) {
+      .form-row {
+        flex-direction: column;
+      }
+    }
+</style>
 </head>
 <body>
   <div class="container">
-    <h1>
-      <img src="images/aap-icon-192x192.png" alt="AAP"
-        style="width: 36px; height: 36px; vertical-align: middle; margin-right: 8px;">
-      AAP Campaign Registration
-    </h1>
-    <p class="subtitle">Andhra Pradesh State Campaign</p>
+    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+      <img src="images/aap-icon-512x512.png" alt="AAP" style="height: 88px; flex-shrink: 0;">
+      <div style="flex: 1; min-width: 0;">
+        <h1 style="margin: 0; line-height: 1.3; color: #333;">
+          <span style="display: block; font-size: 15px; font-weight: 700;">
+            Join our social service activities
+          </span>
+          <span style="display: block; font-size: 12px; font-weight: 400; margin: 4px 0 0 0; color: #888;">
+            in the state of
+          </span>
+          <span style="display: block; font-size: 18px; font-weight: 700; color: #667eea; margin-top: 2px;">
+            ANDHRA PRADESH
+          </span>
+        </h1>
+      </div>
+    </div>
+
 
     <form id="regForm">
-      <!-- Name -->
       <div class="field-group">
         <label for="name">Full Name <span class="required">*</span></label>
-        <input 
-          type="text" 
-          id="name" 
-          name="name" 
-          required 
-          minlength="2" 
-          maxlength="120" 
-          placeholder="Enter your full name"
-        />
+        <input type="text" id="name" required minlength="2" maxlength="120" 
+               autocomplete="name" placeholder="Enter your full name">
       </div>
 
-      <!-- Phone -->
-      <div class="field-group">
-        <label for="phone">Phone Number (10 digits) <span class="required">*</span></label>
-        <input 
-          type="tel" 
-          id="phone" 
-          name="phone" 
-          required 
-          pattern="[0-9]{10}" 
-          maxlength="10" 
-          placeholder="9876543210"
-        />
+      <!-- Phone and Email Row -->
+      <div class="form-row">
+        <div class="field-group">
+          <label for="phone">Phone (10 digits) <span class="required">*</span></label>
+          <input type="tel" id="phone" required pattern="[0-9]{10}" maxlength="10" 
+                autocomplete="tel" placeholder="9876543210">
+        </div>
+        
+        <div class="field-group">
+          <label for="email">Email (optional)</label>
+          <input type="email" id="email" autocomplete="email" 
+                placeholder="your.email@example.com">
+        </div>
       </div>
 
-      <!-- Email (Optional) -->
-      <div class="field-group">
-        <label for="email">Email (optional)</label>
-        <input 
-          type="email" 
-          id="email" 
-          name="email" 
-          placeholder="your.email@example.com"
-        />
-      </div>
-
-      <!-- State Dropdown -->
-      <div class="field-group">
+      <div class="field-group" style="display:none;">
         <label for="state">State <span class="required">*</span></label>
-        <select id="state" name="state" required>
+        <select id="state" required>
           <option value="">-- Select State --</option>
         </select>
       </div>
 
-      <!-- District Dropdown -->
       <div class="field-group">
         <label for="district">District <span class="required">*</span></label>
-        <select id="district" name="district" required disabled>
+        <select id="district" required disabled>
           <option value="">-- Select State First --</option>
         </select>
       </div>
 
-      <!-- Mandal Dropdown -->
       <div class="field-group">
         <label for="mandal">Mandal <span class="required">*</span></label>
-        <select id="mandal" name="mandal" required disabled>
+        <select id="mandal" required disabled>
           <option value="">-- Select District First --</option>
         </select>
       </div>
 
-      <!-- Village Text Input -->
       <div class="field-group">
         <label for="village">Village / Town <span class="required">*</span></label>
-        <input 
-          type="text" 
-          id="village" 
-          name="village" 
-          required 
-          minlength="2" 
-          maxlength="100" 
-          placeholder="Enter your village or town name"
-          disabled
-        />
-        <p class="helper-text">Type your village/town name (e.g., "Chilakaluripet")</p>
+        <input type="text" id="village" required minlength="2" maxlength="100"
+               placeholder="Type your village/town name (e.g., &quot;Chilakaluripet&quot;)">
+        <div class="helper-text">Type your village/town name (e.g., "Chilakaluripet")</div>
       </div>
 
-      <!-- Consent Checkboxes -->
       <label class="checkbox-label">
-        <input type="checkbox" id="consentAccuracy" name="consentAccuracy" required />
-        I certify that this information is mine and accurate <span class="required">*</span>
+        <input type="checkbox" id="consentAccuracy" required>
+        <span>I certify the provided information is mine and accurate<span class="required">*</span></span>
       </label>
 
       <label class="checkbox-label">
-        <input type="checkbox" id="consentShare" name="consentShare" required />
-        I consent to share my details with Aam Aadmi Party <span class="required">*</span>
+        <input type="checkbox" id="consentShare" required>
+        <span>I consent to share my details with AAP to recieve updates regarding social service activities<span class="required">*</span></span>
       </label>
 
-      <!-- Submit Button -->
       <button type="submit" id="submitBtn" disabled>Register</button>
     </form>
 
-    <!-- Success Message -->
     <div id="success" style="display:none;"></div>
-
-    <!-- Error Message -->
     <div id="error" style="display:none;"></div>
   </div>
 
-  <script type="module" src="main.js?v=2"></script>
+  <script type="module" src="main.js"></script>
 </body>
 </html>

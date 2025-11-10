@@ -13,6 +13,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:8080",
         "http://127.0.0.1:8080",
+        "http://192.168.1.37:8080",  # ipv4 compatible i.e., access desktop app from mobile on same network
         "https://aapreg.web.app",
         "https://aap-campaign-reg.firebaseapp.com"  # Alt Firebase URL
     ],

@@ -2,12 +2,11 @@ import { queueRegistration, savePref, getPref } from './db.js';
 
 // API Base URL - Checks for localhost, 127.0.0.1, OR 192.168.x.x
 const API_BASE = (
-  window.location.hostname === 'localhost' || 
-  window.location.hostname === '127.0.0.1' ||
-  window.location.hostname.startsWith('192.168.')  //This accesses only FE, backend will fail as it is on 127.0.0.1
-) 
-  ? 'http://127.0.0.1:8000'  // Local dev backend  //Can't keep DHCP IP address here as it might change frequently
-  : 'https://aap-campaign-reg-backend-444299072309.asia-south1.run.app';  // Production backend
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1'
+)
+  ? 'https://aap-campaign-reg-backend-444299072309.asia-south1.run.app' //'http://127.0.0.1:8000' // Local dev backend
+  : 'https://aap-campaign-reg-backend-444299072309.asia-south1.run.app'; // Production backend
 
 // DOM Elements
 const el = (id) => document.getElementById(id);
@@ -50,37 +49,58 @@ function showError(message) {
 function validateForm() {
   const isNameValid = nameInput.value.trim().length >= 2;
   const isPhoneValid = /^[0-9]{10}$/.test(phoneInput.value);
+  
+  // Email validation: optional but if entered must be valid
+  const emailValue = emailInput.value.trim();
+  const isEmailValid = emailValue === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue);
+  
   const isStateValid = stateSelect.value !== '';
   const isDistrictValid = districtSelect.value !== '';
   const isMandalValid = mandalSelect.value !== '';
   const isVillageValid = villageInput.value.trim().length >= 2;
   const isConsentChecked = consentAccuracyCheckbox.checked && consentShareCheckbox.checked;
 
-  // Add visual feedback for valid fields
+  // Add visual feedback for VALID fields (green checkmark)
   nameInput.classList.toggle('valid', isNameValid);
   phoneInput.classList.toggle('valid', isPhoneValid);
+  emailInput.classList.toggle('valid', isEmailValid && emailValue !== '');
   stateSelect.classList.toggle('valid', isStateValid);
   districtSelect.classList.toggle('valid', isDistrictValid);
   mandalSelect.classList.toggle('valid', isMandalValid);
   villageInput.classList.toggle('valid', isVillageValid);
-  
-  // Enable submit only if ALL mandatory fields valid + consent checked
-  const allValid = isNameValid && isPhoneValid && isStateValid && 
-                   isDistrictValid && isMandalValid && isVillageValid && 
-                   isConsentChecked;
+
+  // Add visual feedback for INVALID fields (red border) - only if user has touched the field
+  nameInput.classList.toggle('invalid', nameInput.value.trim().length > 0 && !isNameValid);
+  phoneInput.classList.toggle('invalid', phoneInput.value.length > 0 && !isPhoneValid);
+  emailInput.classList.toggle('invalid', emailValue.length > 0 && !isEmailValid);
+  villageInput.classList.toggle('invalid', villageInput.value.trim().length > 0 && !isVillageValid);
+
+  // Enable submit only if ALL mandatory fields valid + consent checked + email valid (if entered)
+  const allValid = isNameValid && isPhoneValid && isEmailValid && isStateValid &&
+    isDistrictValid && isMandalValid && isVillageValid &&
+    isConsentChecked;
   
   submitBtn.disabled = !allValid;
-  
   return allValid;
 }
 
 // Add validation listeners to all mandatory fields
 nameInput.addEventListener('input', validateForm);
+nameInput.addEventListener('blur', validateForm); // Check on focus out
+
 phoneInput.addEventListener('input', validateForm);
+phoneInput.addEventListener('blur', validateForm); // Check on focus out
+
+emailInput.addEventListener('input', validateForm);
+emailInput.addEventListener('blur', validateForm); // Check on focus out
+
 stateSelect.addEventListener('change', validateForm);
 districtSelect.addEventListener('change', validateForm);
 mandalSelect.addEventListener('change', validateForm);
+
 villageInput.addEventListener('input', validateForm);
+villageInput.addEventListener('blur', validateForm); // Check on focus out
+
 consentAccuracyCheckbox.addEventListener('change', validateForm);
 consentShareCheckbox.addEventListener('change', validateForm);
 
@@ -98,6 +118,15 @@ async function loadStates() {
       opt.textContent = s.state_name;
       stateSelect.appendChild(opt);
     });
+    
+    // Auto-select Andhra Pradesh and trigger district load; State field is hidden on UI
+    // Remove this auto-selection for mult-state implementation and display state on UI
+    const apState = states.find(s => s.state_name === 'Andhra Pradesh');
+    if (apState) {
+      stateSelect.value = apState.state_id;
+      stateSelect.dispatchEvent(new Event('change')); // Load districts
+    }
+    
   } catch (err) {
     showError('Failed to load states: ' + err.message);
   }
@@ -106,7 +135,6 @@ async function loadStates() {
 // ========== STATE CHANGE: LOAD DISTRICTS & RESET CHILDREN ==========
 stateSelect.addEventListener('change', async () => {
   const stateId = stateSelect.value;
-  
   // Clear any previous errors immediately
   clearError();
   
@@ -130,8 +158,8 @@ stateSelect.addEventListener('change', async () => {
       const errorText = await res.text();
       throw new Error(`Server returned ${res.status}`);
     }
-    const districts = await res.json();
     
+    const districts = await res.json();
     if (!districts || districts.length === 0) {
       throw new Error('No districts found for this state');
     }
@@ -154,7 +182,6 @@ stateSelect.addEventListener('change', async () => {
 // ========== DISTRICT CHANGE: LOAD MANDALS & RESET CHILDREN ==========
 districtSelect.addEventListener('change', async () => {
   const districtId = districtSelect.value;
-  
   // Clear any previous errors immediately
   clearError();
   
@@ -177,8 +204,8 @@ districtSelect.addEventListener('change', async () => {
       const errorText = await res.text();
       throw new Error(`Server returned ${res.status}`);
     }
-    const mandals = await res.json();
     
+    const mandals = await res.json();
     if (!mandals || mandals.length === 0) {
       throw new Error('No mandals found for this district');
     }
@@ -201,7 +228,6 @@ districtSelect.addEventListener('change', async () => {
 // ========== MANDAL CHANGE: ENABLE VILLAGE INPUT ==========
 mandalSelect.addEventListener('change', () => {
   const mandalId = mandalSelect.value;
-  
   // Clear any previous errors immediately
   clearError();
   
@@ -235,6 +261,7 @@ function resetVillage() {
   villageInput.value = '';
   villageInput.disabled = true;
   villageInput.classList.remove('valid');
+  villageInput.classList.remove('invalid');
 }
 
 // ========== FORM SUBMISSION ==========
@@ -250,17 +277,32 @@ form.addEventListener('submit', async (e) => {
   }
   
   const formData = new FormData(form);
-  const payload = {
-    name: formData.get('name').trim(),
-    phone: formData.get('phone').trim(),
-    email: formData.get('email')?.trim() || null,
-    state_id: parseInt(formData.get('state')),
-    district_id: parseInt(formData.get('district')),
-    mandal_id: parseInt(formData.get('mandal')),
-    village_name: formData.get('village').trim(),
-    ...utm,
-  };
   
+  // Safe extraction with null checks for ALL fields
+  const nameValue = formData.get('name');
+  const phoneValue = formData.get('phone');
+  const emailValue = formData.get('email');
+  const villageValue = formData.get('village');
+  const stateValue = formData.get('state');
+  const districtValue = formData.get('district');
+  const mandalValue = formData.get('mandal');
+  
+  const payload = {
+  name: nameInput.value.trim(),
+  phone: phoneInput.value.trim(),
+  email: emailInput.value.trim() || null,
+  state_id: parseInt(stateSelect.value, 10),
+  district_id: parseInt(districtSelect.value, 10),
+  mandal_id: parseInt(mandalSelect.value, 10),
+  village_name: villageInput.value.trim(),
+  utm_source: utm.utm_source,
+  utm_medium: utm.utm_medium,
+  utm_campaign: utm.utm_campaign,
+};
+
+// Debug log
+console.log('Payload:', payload);
+
   submitBtn.disabled = true;
   submitBtn.textContent = 'Submitting...';
   
@@ -280,13 +322,23 @@ form.addEventListener('submit', async (e) => {
     
     if (!res.ok) {
       const err = await res.json();
-      throw new Error(err.detail || 'Registration failed');
+      console.error('Backend validation error:', err);
+
+      // Handle FastAPI validation errors (422)
+      if (err.detail && Array.isArray(err.detail)) {
+        const errorMessages = err.detail.map(e => {
+          const field = e.loc ? e.loc.join(' → ') : 'Unknown field';
+          return `${field}: ${e.msg}`;
+        }).join('\n');
+        throw new Error(errorMessages);
+      }
+
+      throw new Error(err.detail || JSON.stringify(err) || 'Registration failed');
     }
-    
+
     const result = await res.json();
     showSuccess(`✅ Registration successful!\nID: ${result.registration_id}`);
     resetFormAfterSubmit();
-    
   } catch (err) {
     showError(`Registration failed: ${err.message}`);
   } finally {
@@ -302,6 +354,7 @@ function resetFormAfterSubmit() {
   resetMandal();
   resetVillage();
   document.querySelectorAll('.valid').forEach(el => el.classList.remove('valid'));
+  document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
   window.scrollTo({ top: 0, behavior: 'smooth' });
   clearError();
   validateForm();
@@ -321,5 +374,7 @@ validateForm();
 
 // Register service worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+  navigator.serviceWorker.register('/sw.js')
+    .then(() => console.log('Service Worker registered'))
+    .catch(err => console.error('SW registration failed:', err));
 }
