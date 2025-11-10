@@ -355,9 +355,10 @@ function resetFormAfterSubmit() {
   resetVillage();
   document.querySelectorAll('.valid').forEach(el => el.classList.remove('valid'));
   document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  //window.scrollTo({ top: 0, behavior: 'smooth' });
   clearError();
   validateForm();
+  loadStates()    // This hard codes state to AP
 }
 
 // ========== HELPER FUNCTIONS ==========

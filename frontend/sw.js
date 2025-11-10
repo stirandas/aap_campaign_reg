@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aap-campaign-v1';
+const CACHE_NAME = 'aap-campaign-v4';
 const ASSETS = [
   '/',
   '/index.html',
