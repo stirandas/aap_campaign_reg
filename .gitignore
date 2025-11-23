@@ -32,6 +32,6 @@ dist/
 # Local env
 .env.local
 
-# Local config
+# FrontEnd config
 frontend/config.js
 
