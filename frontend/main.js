@@ -1,12 +1,13 @@
 import { queueRegistration, savePref, getPref } from './db.js';
+import config from './config.js';
 
 // API Base URL - Checks for localhost, 127.0.0.1, OR 192.168.x.x
 const API_BASE = (
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1'
 )
-  ? 'https://aap-campaign-reg-backend-444299072309.asia-south1.run.app' //'http://127.0.0.1:8000' // Local dev backend
-  : 'https://aap-campaign-reg-backend-444299072309.asia-south1.run.app'; // Production backend
+  ? config.localBackendUrl // Local dev backend
+  : config.prodBackendUrl; // Production backend
 
 // DOM Elements
 const el = (id) => document.getElementById(id);
@@ -49,11 +50,11 @@ function showError(message) {
 function validateForm() {
   const isNameValid = nameInput.value.trim().length >= 2;
   const isPhoneValid = /^[0-9]{10}$/.test(phoneInput.value);
-  
+
   // Email validation: optional but if entered must be valid
   const emailValue = emailInput.value.trim();
   const isEmailValid = emailValue === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue);
-  
+
   const isStateValid = stateSelect.value !== '';
   const isDistrictValid = districtSelect.value !== '';
   const isMandalValid = mandalSelect.value !== '';
@@ -79,7 +80,7 @@ function validateForm() {
   const allValid = isNameValid && isPhoneValid && isEmailValid && isStateValid &&
     isDistrictValid && isMandalValid && isVillageValid &&
     isConsentChecked;
-  
+
   submitBtn.disabled = !allValid;
   return allValid;
 }
@@ -110,7 +111,7 @@ async function loadStates() {
     const res = await fetch(`${API_BASE}/list/state`);
     if (!res.ok) throw new Error('Failed to load states');
     const states = await res.json();
-    
+
     stateSelect.innerHTML = '<option value="">-- Select State --</option>';
     states.forEach(s => {
       const opt = document.createElement('option');
@@ -118,7 +119,7 @@ async function loadStates() {
       opt.textContent = s.state_name;
       stateSelect.appendChild(opt);
     });
-    
+
     // Auto-select Andhra Pradesh and trigger district load; State field is hidden on UI
     // Remove this auto-selection for mult-state implementation and display state on UI
     const apState = states.find(s => s.state_name === 'Andhra Pradesh');
@@ -126,7 +127,7 @@ async function loadStates() {
       stateSelect.value = apState.state_id;
       stateSelect.dispatchEvent(new Event('change')); // Load districts
     }
-    
+
   } catch (err) {
     showError('Failed to load states: ' + err.message);
   }
@@ -137,33 +138,33 @@ stateSelect.addEventListener('change', async () => {
   const stateId = stateSelect.value;
   // Clear any previous errors immediately
   clearError();
-  
+
   // Reset all child fields
   resetDistrict();
   resetMandal();
   resetVillage();
-  
+
   if (!stateId) {
     validateForm();
     return;
   }
-  
+
   // Show loading state
   districtSelect.innerHTML = '<option value="">-- Loading districts... --</option>';
   districtSelect.disabled = true;
-  
+
   try {
     const res = await fetch(`${API_BASE}/list/district?state_id=${stateId}`);
     if (!res.ok) {
       const errorText = await res.text();
       throw new Error(`Server returned ${res.status}`);
     }
-    
+
     const districts = await res.json();
     if (!districts || districts.length === 0) {
       throw new Error('No districts found for this state');
     }
-    
+
     districtSelect.innerHTML = '<option value="">-- Select District --</option>';
     districts.forEach(d => {
       const opt = document.createElement('option');
@@ -184,32 +185,32 @@ districtSelect.addEventListener('change', async () => {
   const districtId = districtSelect.value;
   // Clear any previous errors immediately
   clearError();
-  
+
   // Reset all child fields
   resetMandal();
   resetVillage();
-  
+
   if (!districtId) {
     validateForm();
     return;
   }
-  
+
   // Show loading state
   mandalSelect.innerHTML = '<option value="">-- Loading mandals... --</option>';
   mandalSelect.disabled = true;
-  
+
   try {
     const res = await fetch(`${API_BASE}/list/mandal?district_id=${districtId}`);
     if (!res.ok) {
       const errorText = await res.text();
       throw new Error(`Server returned ${res.status}`);
     }
-    
+
     const mandals = await res.json();
     if (!mandals || mandals.length === 0) {
       throw new Error('No mandals found for this district');
     }
-    
+
     mandalSelect.innerHTML = '<option value="">-- Select Mandal --</option>';
     mandals.forEach(m => {
       const opt = document.createElement('option');
@@ -230,15 +231,15 @@ mandalSelect.addEventListener('change', () => {
   const mandalId = mandalSelect.value;
   // Clear any previous errors immediately
   clearError();
-  
+
   // Reset village field
   resetVillage();
-  
+
   if (mandalId) {
     villageInput.disabled = false;
     villageInput.focus();
   }
-  
+
   validateForm();
 });
 
@@ -267,17 +268,17 @@ function resetVillage() {
 // ========== FORM SUBMISSION ==========
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  
+
   // Clear any previous errors
   clearError();
-  
+
   if (!validateForm()) {
     showError('Please fill all mandatory fields');
     return;
   }
-  
+
   const formData = new FormData(form);
-  
+
   // Safe extraction with null checks for ALL fields
   const nameValue = formData.get('name');
   const phoneValue = formData.get('phone');
@@ -286,26 +287,26 @@ form.addEventListener('submit', async (e) => {
   const stateValue = formData.get('state');
   const districtValue = formData.get('district');
   const mandalValue = formData.get('mandal');
-  
-  const payload = {
-  name: nameInput.value.trim(),
-  phone: phoneInput.value.trim(),
-  email: emailInput.value.trim() || null,
-  state_id: parseInt(stateSelect.value, 10),
-  district_id: parseInt(districtSelect.value, 10),
-  mandal_id: parseInt(mandalSelect.value, 10),
-  village_name: villageInput.value.trim(),
-  utm_source: utm.utm_source,
-  utm_medium: utm.utm_medium,
-  utm_campaign: utm.utm_campaign,
-};
 
-// Debug log
-console.log('Payload:', payload);
+  const payload = {
+    name: nameInput.value.trim(),
+    phone: phoneInput.value.trim(),
+    email: emailInput.value.trim() || null,
+    state_id: parseInt(stateSelect.value, 10),
+    district_id: parseInt(districtSelect.value, 10),
+    mandal_id: parseInt(mandalSelect.value, 10),
+    village_name: villageInput.value.trim(),
+    utm_source: utm.utm_source,
+    utm_medium: utm.utm_medium,
+    utm_campaign: utm.utm_campaign,
+  };
+
+  // Debug log
+  console.log('Payload:', payload);
 
   submitBtn.disabled = true;
   submitBtn.textContent = 'Submitting...';
-  
+
   try {
     if (!navigator.onLine) {
       await queueRegistration(payload);
@@ -313,13 +314,13 @@ console.log('Payload:', payload);
       resetFormAfterSubmit();
       return;
     }
-    
+
     const res = await fetch(`${API_BASE}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    
+
     if (!res.ok) {
       const err = await res.json();
       console.error('Backend validation error:', err);
