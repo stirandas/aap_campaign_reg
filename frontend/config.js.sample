@@ -1,0 +1,9 @@
+const config = {
+    // Production backend URL
+    // Replace with your actual production backend URL
+    prodBackendUrl: 'https://your-backend-url.run.app',
+    // Local backend URL
+    localBackendUrl: 'http://127.0.0.1:8000'
+};
+
+export default config;
